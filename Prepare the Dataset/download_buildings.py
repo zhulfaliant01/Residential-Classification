@@ -63,14 +63,13 @@ def download_building(place):
 
 
 def main():
-    # with ThreadPoolExecutor(max_workers=4) as executor:
-    #     futures = [
-    #         executor.submit(download_building, f"{kec}, {city}") for kec in kecamatan
-    #     ]
-    #     results = []
-    #     for done in as_completed(futures):
-    #         results.append(done)
-    download_building("Mampang Prapatan, Jakarta Selatan, Indonesia")
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [
+            executor.submit(download_building, f"{kec}, {city}") for kec in kecamatan
+        ]
+        results = []
+        for done in as_completed(futures):
+            results.append(done)
 
 
 if __name__ == "__main__":

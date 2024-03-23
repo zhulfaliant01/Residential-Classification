@@ -9,13 +9,10 @@ warnings.catch_warnings(action="ignore")
 city = "Jakarta Selatan, Indonesia"
 kecamatan = [
     "Cilandak",
-    "Jagakarsa",
     "Kebayoran Baru",
     "Kebayoran Lama",
-    "Mampang Prapatan",
     "Pancoran",
     "Pasar Minggu",
-    "Pesanggrahan",
     "Setiabudi",
     "Tebet",
 ]
@@ -33,7 +30,6 @@ def download_building(place):
             print(f"Successfully downloaded {kec}")
         except Exception as e:
             print(f"Failed to download {kec}: {e}")
-            return
 
         # Ensure directory exists
         output_dir = r"C:\Users\Lenovo\OneDrive - UGM 365\Documents\Second Brain\1 Projects\Skripsi\Code\Residential-Classification\Prepare the Dataset\building"  # Adjusted to use forward slashes
@@ -50,11 +46,22 @@ def download_building(place):
                 (buildings.geom_type == "Polygon")
                 | (buildings.geom_type == "MultiPolygon")
             ].reset_index(drop=True)
+            buildings = buildings[
+                [
+                    "name",
+                    "building:levels",
+                    "building:roof",
+                    "building:walls",
+                    "building",
+                    "building:structure",
+                    "amenity",
+                    "geometry",
+                ]
+            ]
             for column in buildings.columns:
-                if isinstance(buildings[column].iloc[0], list):
-                    buildings[column] = buildings[column].apply(
-                        lambda x: ", ".join(map(str, x)) if isinstance(x, list) else x
-                    )
+                for index, row in buildings.iterrows():
+                    if isinstance(row[column], list):
+                        buildings.loc[index, column] = ""
 
             buildings.to_file(file_path, driver="GeoJSON")
             print(f"Successfully exported to {file_path}")
@@ -63,14 +70,14 @@ def download_building(place):
 
 
 # Main function
-# def main():
-#     with ThreadPoolExecutor(max_workers=4) as executor:
-#         futures = [
-#             executor.submit(download_building, f"{kec}, {city}") for kec in kecamatan
-#         ]
-#         results = []
-#         for done in as_completed(futures):
-#             results.append(done)
+def main():
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [
+            executor.submit(download_building, f"{kec}, {city}") for kec in kecamatan
+        ]
+        results = []
+        for done in as_completed(futures):
+            results.append(done)
 
 
 def download_buildingMampang(place):
@@ -98,19 +105,26 @@ def download_buildingMampang(place):
         file_path = os.path.join(output_dir, f"building_desa_{file_name}.geojson")
 
         try:
-            buildings = (
-                buildings[
-                    (buildings.geom_type == "Polygon")
-                    | (buildings.geom_type == "MultiPolygon")
+            buildings = buildings[
+                (buildings.geom_type == "Polygon")
+                | (buildings.geom_type == "MultiPolygon")
+            ].reset_index(drop=True)
+            buildings = buildings[
+                [
+                    "name",
+                    "building:levels",
+                    "building:roof",
+                    "building:walls",
+                    "building",
+                    "building:structure",
+                    "amenity",
+                    "geometry",
                 ]
-                .reset_index(drop=True)
-                .drop(columns="ways")
-            )
+            ]
             for column in buildings.columns:
-                if isinstance(buildings[column].iloc[0], list):
-                    buildings[column] = buildings[column].apply(
-                        lambda x: ", ".join(map(str, x)) if isinstance(x, list) else x
-                    )
+                for index, row in buildings.iterrows():
+                    if isinstance(row[column], list):
+                        buildings.loc[index, column] = ""
 
             buildings.to_file(file_path, driver="GeoJSON")
             print(f"Successfully exported to {file_path}")
@@ -156,22 +170,26 @@ def download_buildingJagakarsa(place):
         file_path = os.path.join(output_dir, f"building_desa_{kec}.geojson")
 
         try:
-            try:
-                buildings = (
-                    buildings[
-                        (buildings.geom_type == "Polygon")
-                        | (buildings.geom_type == "MultiPolygon")
-                    ]
-                    .reset_index(drop=True)
-                    .drop(columns="ways")
-                )
-            except:
-                pass
+            buildings = buildings[
+                (buildings.geom_type == "Polygon")
+                | (buildings.geom_type == "MultiPolygon")
+            ].reset_index(drop=True)
+            buildings = buildings[
+                [
+                    "name",
+                    "building:levels",
+                    "building:roof",
+                    "building:walls",
+                    "building",
+                    "building:structure",
+                    "amenity",
+                    "geometry",
+                ]
+            ]
             for column in buildings.columns:
-                if isinstance(buildings[column].iloc[0], list):
-                    buildings[column] = buildings[column].apply(
-                        lambda x: ", ".join(map(str, x)) if isinstance(x, list) else x
-                    )
+                for index, row in buildings.iterrows():
+                    if isinstance(row[column], list):
+                        buildings.loc[index, column] = ""
 
             buildings.to_file(file_path, driver="GeoJSON")
             print(f"Successfully exported to {file_path}")
@@ -179,21 +197,21 @@ def download_buildingJagakarsa(place):
             print(f"Failed to export {kec}: {e}")
 
 
-# def main(): # Jagakarsa
-#     AlamatLengkap = "Jagakarsa, Jakarta Selatan, Indonesia"
-#     desa = [
-#         "Jagakarsa",
-#         "Ciganjur",
-#         "Lenteng Agung",
-#         "Tanjung Barat",
-#         "Srengseng Sawah",
-#         "Cipedak",
-#     ]
-#     with ThreadPoolExecutor(max_workers=4) as executor:
-#         futures = [
-#             executor.submit(download_buildingJagakarsa, f"{des}, {AlamatLengkap}")
-#             for des in desa
-#         ]
+def main():  # Jagakarsa
+    AlamatLengkap = "Jagakarsa, Jakarta Selatan, Indonesia"
+    desa = [
+        "Jagakarsa",
+        "Ciganjur",
+        "Lenteng Agung",
+        "Tanjung Barat",
+        "Srengseng Sawah",
+        "Cipedak",
+    ]
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [
+            executor.submit(download_buildingJagakarsa, f"{des}, {AlamatLengkap}")
+            for des in desa
+        ]
 
 
 def download_buildingPesanggrahan(place):
@@ -220,21 +238,26 @@ def download_buildingPesanggrahan(place):
         file_path = os.path.join(output_dir, f"building_desa_{kec}.geojson")
 
         try:
-            try:
-                buildings = (
-                    buildings[
-                        (buildings.geom_type == "Polygon")
-                        | (buildings.geom_type == "MultiPolygon")
-                    ].reset_index(drop=True)
-                    # .drop(columns="ways")
-                )
-            except:
-                pass
+            buildings = buildings[
+                (buildings.geom_type == "Polygon")
+                | (buildings.geom_type == "MultiPolygon")
+            ].reset_index(drop=True)
+            buildings = buildings[
+                [
+                    "name",
+                    "building:levels",
+                    "building:roof",
+                    "building:walls",
+                    "building",
+                    "building:structure",
+                    "amenity",
+                    "geometry",
+                ]
+            ]
             for column in buildings.columns:
-                if isinstance(buildings[column].iloc[0], list):
-                    buildings[column] = buildings[column].apply(
-                        lambda x: ", ".join(map(str, x)) if isinstance(x, list) else x
-                    )
+                for index, row in buildings.iterrows():
+                    if isinstance(row[column], list):
+                        buildings.loc[index, column] = ""
 
             buildings.to_file(file_path, driver="GeoJSON")
             print(f"Successfully exported to {file_path}")
@@ -242,7 +265,7 @@ def download_buildingPesanggrahan(place):
             print(f"Failed to export {kec}: {e}")
 
 
-def main_pesanggrahan():  # Pesanggrahan
+def main():  # Pesanggrahan
     AlamatLengkap = "Pesanggrahan, Jakarta Selatan, Indonesia"
     desa = [
         "Ulujami",
@@ -259,4 +282,4 @@ def main_pesanggrahan():  # Pesanggrahan
 
 
 if __name__ == "__main__":
-    main_pesanggrahan()
+    main()

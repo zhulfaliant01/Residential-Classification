@@ -12,40 +12,37 @@ def merge_building(name, list):
         gdf_list.append(df)
 
     gdf = gpd.GeoDataFrame(pd.concat(gdf_list))
-    path = r"C:\Users\Lenovo\OneDrive - UGM 365\Documents\Second Brain\1 Projects\Skripsi\Code\Residential-Classification\Data Collection\building_clean"
-    path = os.path.join(path, f"{name}_clean.geojson")
+    path = r"C:\Users\Lenovo\OneDrive - UGM 365\Documents\Second Brain\1 Projects\Skripsi\Code\Residential-Classification\Data Collection\building"
+    path = os.path.join(path, f"{name}.geojson")
     gdf.to_file(path, driver="GeoJSON")
-
-    for file in list:
-        os.remove(file)
 
 
 def main():
 
     list_mampang = [
-        r"Data Collection\building_clean\desa_Mampang Prapatan_clean.geojson",
-        r"Data Collection\building_clean\desa_Tegal Parang_clean.geojson",
-        r"Data Collection\building_clean\desa_Pela Mampang_clean.geojson",
-        r"Data Collection\building_clean\desa_Bangka_clean.geojson",
+        r"Data Collection\building\building_desa_Mampang Prapatan.geojson",
+        r"Data Collection\building\building_desa_Tegal Parang.geojson",
+        r"Data Collection\building\building_desa_Pela Mampang.geojson",
+        r"Data Collection\building\building_desa_Bangka.geojson",
     ]
     merge_building("Mampang Prapatan", list_mampang)
 
     list_jagakarsa = [
-        r"Data Collection\building_clean\desa_Jagakarsa_clean.geojson",
-        r"Data Collection\building_clean\desa_Ciganjur_clean.geojson",
-        r"Data Collection\building_clean\desa_Lenteng Agung_clean.geojson",
-        r"Data Collection\building_clean\desa_Tanjung Barat_clean.geojson",
-        r"Data Collection\building_clean\desa_Srengseng Sawah_clean.geojson",
-        r"Data Collection\building_clean\desa_Cipedak_clean.geojson",
+        r"Data Collection\building\building_desa_Jagakarsa.geojson",
+        r"Data Collection\building\building_desa_Ciganjur.geojson",
+        r"Data Collection\building\building_desa_Lenteng Agung.geojson",
+        r"Data Collection\building\building_desa_Tanjung Barat.geojson",
+        r"Data Collection\building\building_desa_Srengseng Sawah.geojson",
+        r"Data Collection\building\building_desa_Cipedak.geojson",
     ]
     merge_building("Jagakarsa", list_jagakarsa)
 
     list_pesanggrahan = [
-        r"Data Collection\building_clean\desa_Bintaro_clean.geojson",
-        r"Data Collection\building_clean\desa_Pesanggrahan_clean.geojson",
-        r"Data Collection\building_clean\desa_Petukangan Selatan_clean.geojson",
-        r"Data Collection\building_clean\desa_Petukangan Utara_clean.geojson",
-        r"Data Collection\building_clean\desa_Ulujami_clean.geojson",
+        r"Data Collection\building\building_desa_Bintaro.geojson",
+        r"Data Collection\building\building_desa_Pesanggrahan.geojson",
+        r"Data Collection\building\building_desa_Petukangan Selatan.geojson",
+        r"Data Collection\building\building_desa_Petukangan Utara.geojson",
+        r"Data Collection\building\building_desa_Ulujami.geojson",
     ]
     merge_building("Pesanggrahan", list_pesanggrahan)
 

@@ -16,6 +16,9 @@ def merge_building(name, list):
     path = os.path.join(path, f"{name}.geojson")
     gdf.to_file(path, driver="GeoJSON")
 
+    for file in list:
+        os.remove(file)
+
 
 def main():
 

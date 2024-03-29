@@ -9,26 +9,6 @@
 *.bat
 skrps
 cache
-download.ipynb
-Prepare the Dataset/street/streets_Cilandak.geojson
-Prepare the Dataset/street/streets_desa_Bangka.geojson
-Prepare the Dataset/street/streets_desa_Bintaro.geojson
-Prepare the Dataset/street/streets_desa_Ciganjur.geojson
-Prepare the Dataset/street/streets_desa_Cipedak.geojson
-Prepare the Dataset/street/streets_desa_Jagakarsa.geojson
-Prepare the Dataset/street/streets_desa_Lenteng Agung.geojson
-Prepare the Dataset/street/streets_desa_Mampang Prapatan.geojson
-Prepare the Dataset/street/streets_desa_Pela Mampang.geojson
-Prepare the Dataset/street/streets_desa_Pesanggrahan.geojson
-Prepare the Dataset/street/streets_desa_Petukangan Selatan.geojson
-Prepare the Dataset/street/streets_desa_Petukangan Utara.geojson
-Prepare the Dataset/street/streets_desa_Srengseng Sawah.geojson
-Prepare the Dataset/street/streets_desa_Tanjung Barat.geojson
-Prepare the Dataset/street/streets_desa_Tegal Parang.geojson
-Prepare the Dataset/street/streets_desa_Ulujami.geojson
-Prepare the Dataset/street/streets_Kebayoran Baru.geojson
-Prepare the Dataset/street/streets_Kebayoran Lama.geojson
-Prepare the Dataset/street/streets_Pancoran.geojson
-Prepare the Dataset/street/streets_Pasar Minggu.geojson
-Prepare the Dataset/street/streets_Setiabudi.geojson
-Prepare the Dataset/street/streets_Tebet.geojson
+Data Collection/temp.py
+building
+street

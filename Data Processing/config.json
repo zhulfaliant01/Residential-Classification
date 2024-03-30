@@ -1,0 +1,16 @@
+{
+    "target_crs": "EPSG:32748",
+    "landuse_paths": {
+      "input": "Data Collection\\landuse\\landuse_jaksel.geojson",
+      "output": "Data Collection\\landuse_clean"
+    },
+    "building_paths": {
+      "input": "Data Collection\\building",
+      "output": "Data Collection\\building_clean"
+    },
+    "street_paths": {
+      "input": "Data Collection\\street",
+      "output": "Data Collection\\street_clean"
+    }
+  }
+  

@@ -13,3 +13,7 @@ Data Collection/temp.py
 building
 street
 landuse
+tessellation
+street_clean
+building_clean
+*.pyc

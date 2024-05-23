@@ -9,14 +9,14 @@ import re
 import logging
 import json
 
+del os.environ["PROJ_LIB"]  # Ada conflict antara PROJ dari venv dengan PROJ dari PostgreSQL
+
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Load configuration
 try:
-    with open("Data Processing\config.json", "r") as config_file:
+    with open(r"Data Processing\config.json", "r") as config_file:
         config = json.load(config_file)
 except Exception as e:
     logging.error("Failed to load config: %s", e)
@@ -32,7 +32,7 @@ def clean_data(path, folder_out, data_type):
         gdf = gpd.read_file(path)
 
         if gdf.crs != crs:
-            gdf = gdf.to_crs(crs)
+            gdf = gdf.set_crs(crs, allow_override=True)
 
         if data_type == "landuse":
             gdf = gdf.dissolve("label")
@@ -60,13 +60,13 @@ def process_files(folder_in, folder_out, data_type):
 def main():
     logging.info("Processing Start...")
 
-    landuse_paths = config.get("landuse_paths", {})
-    building_paths = config.get("building_paths", {})
-    street_paths = config.get("street_paths", {})
+    landuse_paths = config.get("landuse_validation_paths", {})
+    building_paths = config.get("building_validation_paths", {})
+    street_paths = config.get("street_validation_paths", {})
 
-    clean_data(landuse_paths["input"], landuse_paths["output"], "landuse")
-    process_files(building_paths["input"], building_paths["output"], "building")
-    process_files(street_paths["input"], street_paths["output"], "street")
+    process_files(landuse_paths["input"], landuse_paths["output"], "landuse")
+    # process_files(building_paths["input"], building_paths["output"], "building")
+    # process_files(street_paths["input"], street_paths["output"], "street")
 
     logging.info("Processing Done...")
 

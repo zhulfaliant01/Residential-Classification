@@ -25,3 +25,7 @@ Data Processing\Calculated_Building
 Data Processing\morphometric_debug.py
 XGBoost\data_modelling.py
 Data Processing\__pycache__
+labeled_building
+Calculated_Building
+landuse_clean
+__pycache__

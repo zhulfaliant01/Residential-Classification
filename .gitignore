@@ -34,3 +34,10 @@ Data Processing/test.csv
 XGBoost/hasil.csv
 XGBoost/hasil_validation.csv
 *.gdb
+*.geojson
+1_landuse
+1_building
+1_street
+2_landuse_clean
+2_building_clean
+2_street_clean

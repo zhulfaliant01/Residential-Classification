@@ -2,6 +2,8 @@
 import pandas as pd
 import geopandas as gpd
 from shapely import wkt
+import fiona
+import os
 
 
 def read_csv_to_wkt(file, geom_column="geometry"):
@@ -18,3 +20,12 @@ def read_csv_to_wkt(file, geom_column="geometry"):
     print("Conversion to GeoDataFrame done.")
 
     return data
+
+
+def list_gdb_layers(gdb_file):
+    layers = fiona.listlayers(gdb_file)
+    return layers
+
+
+def gdb_to_csv(gdb_file, layer_name, output_filename):
+    pass

@@ -1,0 +1,28 @@
+{
+    "crs": "EPSG:32748",
+    "landuse_training_paths": {
+      "input": "Data Collection\\1_landuse\\training",
+      "output": "Data Collection\\2_landuse_clean\\training"
+    },
+    "landuse_test_paths": {
+      "input": "Data Collection\\1_landuse\\test",
+      "output": "Data Collection\\2_landuse_clean\\test"
+    },
+    "building_training_paths": {
+      "input": "Data Collection\\1_building\\test",
+      "output": "Data Collection\\2_building_clean\\test"
+    },
+    "building_test_paths": {
+      "input": "Data Collection\\1_building\\test",
+      "output": "Data Collection\\2_building_clean\\test"
+    },
+    "street_training_paths": {
+      "input": "Data Collection\\1_street\\training",
+      "output": "Data Collection\\2_street_clean\\training"
+    },
+    "street_test_paths": {
+      "input": "Data Collection\\1_street\\test",
+      "output": "Data Collection\\2_street_clean\\test"
+  }
+}
+  

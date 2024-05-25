@@ -29,3 +29,7 @@ labeled_building
 Calculated_Building
 landuse_clean
 __pycache__
+check.ipynb
+Data Processing/test.csv
+XGBoost/hasil.csv
+XGBoost/hasil_validation.csv

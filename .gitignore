@@ -33,3 +33,4 @@ check.ipynb
 Data Processing/test.csv
 XGBoost/hasil.csv
 XGBoost/hasil_validation.csv
+*.gdb

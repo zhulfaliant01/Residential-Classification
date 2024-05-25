@@ -12,7 +12,89 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 del os.environ["PROJ_LIB"]
 
 
-def check_overlap(gdf, id_col=None, threshold=0):
+def _check_overlap(gdf, id_col=None, threshold: float = 0):
+    """
+    Check for overlaps between geometries in a GeoDataFrame and return overlapping pairs.
+
+    Args:
+        gdf (GeoDataFrame): Input GeoDataFrame with geometries to check for overlaps.
+        id_col (str, optional): Column name for unique identifiers. If None, a temporary column will be created.
+        threshold (float): Minimum area threshold for considering overlaps.
+
+    Returns:
+        GeoDataFrame: DataFrame with overlapping geometry pairs and their intersection areas, or None if no overlaps found.
+    """
+    try:
+        crs = CRS(gdf.crs)
+        if crs.is_geographic:
+            logging.warning(
+                "GeoDataFrame is in a geographic CRS. Consider reprojecting to a projected CRS for accurate area measurements."
+            )
+
+        if id_col is None:
+            gdf["id"] = range(1, len(gdf) + 1)
+            id_col = "id"
+
+        gdf["temp_index"] = gdf.index
+        spatial_index = gdf.sindex
+        data_overlaps = []
+
+        for index, row in gdf.iterrows():
+            try:
+                possible_matches_index = list(spatial_index.intersection(row.geometry.bounds))
+            except Exception as e:
+                logging.warning(f"Error when looking for intersection: {e}")
+                continue
+
+            possible_matches = gdf.iloc[possible_matches_index].copy()
+            possible_overlaps = possible_matches[
+                possible_matches.geometry.overlaps(row.geometry)
+            ]
+
+            for _, possible_overlap_row in possible_overlaps.iterrows():
+                if possible_overlap_row[id_col] == row[id_col]:
+                    continue
+
+                intersection = gpd.overlay(
+                    gdf.loc[[index]],
+                    gdf.loc[[possible_overlap_row["temp_index"]]],
+                    how="intersection",
+                )
+
+                if not intersection.empty:
+                    intersection["area"] = intersection.geometry.area
+
+                    if intersection["area"].iloc[0] >= threshold:
+                        sorted_ids = sorted([row[id_col], possible_overlap_row[id_col]])
+                        overlap_entry = sorted_ids + [
+                            intersection.geometry.iloc[0],
+                            intersection["area"].iloc[0],
+                        ]
+
+                        if overlap_entry not in data_overlaps:
+                            data_overlaps.append(overlap_entry)
+
+        del gdf["temp_index"]
+
+        if data_overlaps:
+            overlaps_gdf = gpd.GeoDataFrame(
+                data_overlaps,
+                columns=[f"{id_col}_1", f"{id_col}_2", "geometry", "area"],
+                crs=gdf.crs,
+            )  # type: ignore
+            overlaps_gdf.drop_duplicates(
+                subset=[f"{id_col}_1", f"{id_col}_2", "area"], inplace=True, ignore_index=True
+            )
+            return overlaps_gdf
+        else:
+            return None
+
+    except Exception as e:
+        logging.error("Failed in check_overlap: %s", e)
+        raise
+
+
+def check_overlap(gdf, id_col=None, threshold: float = 0):
 
     try:
         crs = CRS(gdf.crs)
@@ -62,16 +144,14 @@ def check_overlap(gdf, id_col=None, threshold=0):
                             ]
                         )
 
-        if data_overlaps:
+        if data_overlaps is not None:
             overlaps_gdf = gpd.GeoDataFrame(
                 data_overlaps,
                 columns=[f"{id_col}_1", f"{id_col}_2", "geometry", "area"],
                 crs=gdf.crs,
-            )
+            )  # type:ignore
         else:
-            overlaps_gdf = gpd.GeoDataFrame(
-                columns=[f"{id_col}_1", f"{id_col}_2", "geometry", "area"], crs=gdf.crs
-            )
+            return None
 
         del gdf["temp_index"]
         overlaps_gdf.drop_duplicates(inplace=True, ignore_index=True)
@@ -109,11 +189,11 @@ def check_gap(gdf, id_col):
             )
             return gpd.GeoDataFrame(
                 columns=[f"{id_col}_1", f"{id_col}_2", "geometry", "area"], crs=gdf.crs
-            )
+            )  # type:ignore
 
         interiors = data_temp_diss.interiors.values.tolist()[0]
         gap_list = [LineString(i) for i in interiors]
-        data_gaps = gpd.GeoDataFrame(geometry=gap_list, crs=gdf.crs)
+        data_gaps = gpd.GeoDataFrame(geometry=gap_list, crs=gdf.crs)  # type:ignore
         gdf_sindex = gdf_copy.sindex
 
         data_gaps["feature_touches"] = data_gaps.geometry.apply(
@@ -130,7 +210,7 @@ def check_gap(gdf, id_col):
         raise
 
 
-def check_containment(gdf, id_col, min_area=0):
+def check_containment(gdf, id_col, min_area: float = 0):
     """
     This function checks for geometries in a GeoDataFrame that are completely contained
     within other geometries and identifies those that meet a specified minimum area criteria.
@@ -187,15 +267,15 @@ def check_containment(gdf, id_col, min_area=0):
                 data_containment,
                 columns=[f"{id_col}_1", f"{id_col}_2", "geometry", "area", "drop"],
                 crs=gdf.crs,
-            )
+            )  # type:ignore
         else:
-            containment_gdf = gpd.GeoDataFrame(
-                columns=[f"{id_col}_1", f"{id_col}_2", "geometry", "area", "drop"],
-                crs=gdf.crs,
-            )
+            print("None found")
+            return None
 
         del gdf["temp_index"]
-        containment_gdf.drop_duplicates(inplace=True, ignore_index=True)
+        containment_gdf.drop_duplicates(
+            subset=[f"{id_col}_1", f"{id_col}_2", "area"], inplace=True, ignore_index=True
+        )
         return containment_gdf
     except Exception as e:
         logging.error("Failed in check_containment: %s", e)
@@ -215,16 +295,18 @@ def _main():
         if gdf.crs != crs:
             gdf = gdf.to_crs(crs)
 
-        overlaps_gdf = check_overlap(gdf, "bID", 0.5)
+        overlaps_gdf = check_overlap(gdf, "bID", 0.5)  # type:ignore
         if len(overlaps_gdf) > 0:
+            print(len(overlaps_gdf))
             overlaps_gdf.to_file(
                 file.replace("_1.geojson", "_overlaps.geojson"), driver="GeoJSON"
             )
         else:
             logging.warning("No overlaps found in %s", file)
 
-        containment_gdf = check_containment(gdf, "bID", 0.5)
+        containment_gdf = check_containment(gdf, "bID", 0.5)  # type:ignore
         if len(containment_gdf) > 0:
+            print(len(containment_gdf))
             containment_gdf.to_file(
                 file.replace("_1.geojson", "_containment.geojson"), driver="GeoJSON"
             )
@@ -234,8 +316,8 @@ def _main():
         logging.info("Succeed : %s", file)
 
     try:
-        files_path = r"Data Collection\building_clean\validation"
-        files = glob.glob(os.path.join(files_path, "*_1.geojson"))
+        files_path = r"Data Collection\building_clean\test"
+        files = glob.glob(os.path.join(files_path, "*.geojson"))
         with ThreadPoolExecutor(max_workers=2) as executor:
             futures = [executor.submit(run_function, file) for file in files]
 

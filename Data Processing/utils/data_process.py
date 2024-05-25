@@ -27,16 +27,5 @@ def list_gdb_layers(gdb_file):
     return layers
 
 
-def gdb_to_csv(gdb_file, layer_name, output_filename):  # Not done yet
-    import os
-
-    path = r"C:\Users\Lenovo\OneDrive - UGM 365\Documents\Second Brain\1 Projects\Skripsi\Code\Residential-Classification\Data Collection\Batas_wilayah"
-    os.makedirs(path, exist_ok=True)
-
-    for layer in layers:
-        if layer == "ADMINISTRASI_AR_KECAMATAN":
-            gdf = gpd.read_file(gdb_file, layer=layer)
-            gdf.to_csv(os.path.join(path, "KECAMATAN.csv"))
-        elif layer == "ADMINISTRASI_AR_KOTAKAB":
-            gdf = gpd.read_file(gdb_file, layer=layer)
-            gdf.to_csv(os.path.join(path, "KOTAKAB.csv"))
+def gdb_to_csv(gdb_file, layer_name, output_filename):
+    pass

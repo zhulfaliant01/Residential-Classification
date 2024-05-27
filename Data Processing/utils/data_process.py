@@ -3,7 +3,11 @@ import pandas as pd
 import geopandas as gpd
 from shapely import wkt
 import fiona
-import os
+import json
+
+with open(r"config.json", "r") as config_file:
+    config = json.load(config_file)
+crs = config.get("crs")
 
 
 def read_csv_to_wkt(file, geom_column="geometry"):
@@ -25,6 +29,12 @@ def read_csv_to_wkt(file, geom_column="geometry"):
 def list_gdb_layers(gdb_file):
     layers = fiona.listlayers(gdb_file)
     return layers
+
+
+def check_and_set_crs(gdf: gpd.GeoDataFrame):
+    if gdf.crs != crs:
+        gdf.set_crs(crs, allow_override=True)
+    return gdf
 
 
 def gdb_to_csv(gdb_file, layer_name, output_filename):

@@ -18,11 +18,11 @@
     },
     "tess_training_paths": {
       "input": "Dataset\\3_labeled_building\\training",
-      "output": "Dataset\\3_tess\\training"
+      "output": "Dataset\\4_tess\\training"
     },
     "tess_test_paths": {
       "input": "Dataset\\3_labeled_building\\test",
-      "output": "Dataset\\3_tess\\test"
+      "output": "Dataset\\4_tess\\test"
     },
     "building_error_training_paths": {
       "path": "Dataset\\2_building_clean\\training\\error"

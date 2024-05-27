@@ -1,42 +1,54 @@
 {
     "crs": "EPSG:32748",
     "landuse_training_paths": {
-      "input": "Data Collection\\1_landuse\\training",
-      "output": "Data Collection\\2_landuse_clean\\training"
+      "input": "Dataset\\1_landuse\\training",
+      "output": "Dataset\\2_landuse_clean\\training"
     },
     "landuse_test_paths": {
-      "input": "Data Collection\\1_landuse\\test",
-      "output": "Data Collection\\2_landuse_clean\\test"
+      "input": "Dataset\\1_landuse\\test",
+      "output": "Dataset\\2_landuse_clean\\test"
     },
     "building_training_paths": {
-      "input": "Data Collection\\1_building\\training",
-      "output": "Data Collection\\2_building_clean\\training"
+      "input": "Dataset\\1_building\\training",
+      "output": "Dataset\\2_building_clean\\training"
     },
     "building_test_paths": {
-      "input": "Data Collection\\1_building\\test",
-      "output": "Data Collection\\2_building_clean\\test"
+      "input": "Dataset\\1_building\\test",
+      "output": "Dataset\\2_building_clean\\test"
     },
     "tess_training_paths": {
-      "input": "Data Collection\\2_building_clean\\training",
-      "output": "Data Collection\\3_tess\\training"
+      "input": "Dataset\\2_building_clean\\training_clean",
+      "output": "Dataset\\3_tess\\training"
     },
     "tess_test_paths": {
-      "input": "Data Collection\\2_building_clean\\test",
-      "output": "Data Collection\\3_tess\\test"
+      "input": "Dataset\\2_building_clean\\test_clean",
+      "output": "Dataset\\3_tess\\test"
     },
     "building_error_training_paths": {
-      "path": "Data Collection\\2_building_clean\\training\\error"
+      "path": "Dataset\\2_building_clean\\training\\error"
     },
     "building_error_test_paths": {
-      "path": "Data Collection\\2_building_clean\\test\\error"
+      "path": "Dataset\\2_building_clean\\test\\error"
     },
     "street_training_paths": {
-      "input": "Data Collection\\1_street\\training",
-      "output": "Data Collection\\2_street_clean\\training"
+      "input": "Dataset\\1_street\\training",
+      "output": "Dataset\\2_street_clean\\training"
     },
     "street_test_paths": {
-      "input": "Data Collection\\1_street\\test",
-      "output": "Data Collection\\2_street_clean\\test"
-  }
+      "input": "Dataset\\1_street\\test",
+      "output": "Dataset\\2_street_clean\\test"
+    },
+    "label_training_paths": {
+      "input": "Dataset\\2_building_clean\\training_clean",
+      "output": "Dataset\\3_labeled_building\\training"
+    },
+    "label_test_paths": {
+      "input": "Dataset\\2_building_clean\\test_clean",
+      "output": "Dataset\\3_labeled_building\\test"
+    },
+
+    "KABKOT": {
+      "Jakarta Selatan": []
+    }
 }
   

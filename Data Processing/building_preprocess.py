@@ -62,7 +62,7 @@ for file in files:
 
     # Check for overlap errors
     logging.info(f"{kec} : Overlap...")
-    overlap_error = utils._check_overlap(gdf, "bID", 0.5)
+    overlap_error = utils.check_overlap(gdf, "bID", 0.5)
     if overlap_error is not None:
         logging.info(f"{kec} : There is {len(overlap_error)} overlap...")
         overlap_path = os.path.join(error_path, f"{kec}_overlap.csv")

@@ -9,30 +9,9 @@
 *.bat
 skrps
 cache
-Data Collection/temp.py
-building
-street
-landuse
-tessellation
-street_clean
-building_clean
 *.pyc
 .vscode
-Data Processing/check.ipynb
-Data Collection\landuse_clean
-Data Processing\labeled_building
-Data Processing\Calculated_Building
-Data Processing\morphometric_debug.py
-XGBoost\data_modelling.py
-Data Processing\__pycache__
-labeled_building
-Calculated_Building
-landuse_clean
-__pycache__
-check.ipynb
-Data Processing/test.csv
-XGBoost/hasil.csv
-XGBoost/hasil_validation.csv
 *.gdb
 *.geojson
 Dataset
+temp*

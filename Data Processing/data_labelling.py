@@ -2,13 +2,30 @@ import geopandas as gpd
 import pandas as pd
 import os
 import logging
+import json
+import glob
+import re
+from utils import read_csv_to_wkt
+
+# del os.environ["PROJ_LIB"]  # Ada conflict antara PROJ dari venv dengan PROJ dari PostgreSQL
 
 # Set logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-import os
+# Set dataset type: "training" or "test"
+dataset_type = "test"
 
-del os.environ["PROJ_LIB"]  # Ada conflict antara PROJ dari venv dengan PROJ dari PostgreSQL
+# Load configuration from JSON file
+with open(r"config.json", "r") as config_file:
+    config = json.load(config_file)
+
+# Set input and output folders from the configuration
+folder_in = config.get(f"label_{dataset_type}_paths")["input"]
+folder_out = config.get(f"label_{dataset_type}_paths")["output"]
+landuse = config.get(f"landuse_{dataset_type}_paths")["input"]
+os.makedirs(folder_out, exist_ok=True)
+
+crs = config.get("crs")
 
 
 def add_new_id(gdf, kec):
@@ -26,6 +43,10 @@ def add_new_id(gdf, kec):
         "Tebet": "TEB",
         "Kelapa Gading": "KGD",
         "Cilincing": "CLN",
+        "Koja": "KOJ",
+        "Pademangan": "PDM",
+        "Penjaringan": "PJR",
+        "Tanjung Priok": "TJP",
     }
     kec_code = code_map[kec]
     gdf["bID_kec"] = kec_code + gdf["bID"].astype(str)
@@ -57,29 +78,23 @@ def add_label(gdf, label):
     return final_gdf
 
 
-def process(kec: str, label_gdf):
-    """
-    - Adding bID_Kec label and update the calculated geojson
-    - Safe it in a df, to add it all later (outside the function)
-    - Find the label for each building
-    ## Returns:
-    - Master GDF that contains everything
-    - DF that contains the calculated values with bID_Kec for ML
-    """
+files = glob.glob(os.path.join(folder_in, "*.shp"))
+landuse_gdf = read_csv_to_wkt(glob.glob(os.path.join(landuse, "*.csv"))[0])
+landuse_gdf = landuse_gdf.explode(index_parts=True)
 
-    logging.info(f"{kec} start!")
-    path = os.path.join(calculated_building_path, f"{kec}_calculated.geojson")
-    out_path = os.path.join(output_path, f"{kec}_labeled.geojson")
-    building = gpd.read_file(path)
+if landuse_gdf.crs != crs:
+    landuse_gdf = landuse_gdf.set_crs(crs, allow_override=True)  # type: ignore
 
-    if building.crs != "EPSG:32748":
-        building.set_crs("EPSG:32748", allow_override=True)
+for file in files:
+    kec = re.search(r"\\([\w ]*).shp", file).group(1)  # type: ignore
+    logging.info(f"{kec} start...")
+    building = gpd.read_file(file)
+
+    if building.crs != crs:
+        building = building.set_crs(crs, allow_override=True)  # type: ignore
 
     xmin, ymin, xmax, ymax = building.total_bounds
-    label = label_gdf.cx[xmin:xmax, ymin:ymax]
-
-    if building.crs != "EPSG:32748":
-        building.set_crs("EPSG:32748", allow_override=True)
+    label = landuse_gdf.cx[xmin:xmax, ymin:ymax]
 
     building = add_new_id(building, kec)
     building_done = add_label(building, label)
@@ -88,59 +103,16 @@ def process(kec: str, label_gdf):
     bID_2 = building_done.bID.nunique()
     logging.info(f"bID before : {bID_1}, bID after : {bID_2}")
 
-    building_done.to_file(out_path, driver="GeoJSON")  # update the source JSON file
-
-    return building_done.drop(
-        columns=[
-            "geometry",
-            "bID",
-            "sID",
-            "mm_len",
-            "nodeID",
-            "node_start",
-            "node_end",
-        ],
-        axis=1,
-    )
+    building_done.to_csv(os.path.join(folder_out, f"{kec}_labeled.csv"))
 
 
-df_list = []
-kecamatan = [
-    "Cilandak",
-    "Jagakarsa",
-    "Kebayoran Baru",
-    "Kebayoran Lama",
-    "Mampang Prapatan",
-    "Pancoran",
-    "Pasar Minggu",
-    "Pesanggrahan",
-    "Setiabudi",
-    "Tebet",
-]
+# for kec in kecamatan:
+#     building = process(kec, label_gdf)
+#     df_list.append(building)
+#     logging.info(f"{kec} done")
 
-kecamatan_validasi = ["Kelapa Gading"]
-
-# Set path
-logging.info("Setting path...")
-calculated_building_path = r"Data Processing\Calculated_Building"
-label_path = r"Data Collection\landuse_clean\jaksel_1.geojson"
-output_path = r"Data Processing\labeled_building"
-os.makedirs(output_path, exist_ok=True)
-
-label_gdf = gpd.read_file(label_path)
-label_gdf = label_gdf.explode(index_parts=True)
-
-if label_gdf.crs != "EPSG:32748":
-    label_gdf.set_crs("EPSG:32748", allow_override=True)
-label_gdf = label_gdf[["label", "geometry"]]
-
-for kec in kecamatan:
-    building = process(kec, label_gdf)
-    df_list.append(building)
-    logging.info(f"{kec} done")
-
-final_path = os.path.join(output_path, "Final_data.csv")
-final_df = pd.concat(df_list)
-print(final_df.columns)
-print(f"Total row : {len(final_df)}")
-final_df.to_csv(final_path)
+# final_path = os.path.join(output_path, "Final_data.csv")
+# final_df = pd.concat(df_list)
+# print(final_df.columns)
+# print(f"Total row : {len(final_df)}")
+# final_df.to_csv(final_path)

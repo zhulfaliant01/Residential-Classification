@@ -5,6 +5,7 @@ import os
 import re
 import logging
 import json
+from utils import read_csv_to_wkt
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -23,12 +24,12 @@ crs = config.get("crs")
 
 
 def create_tess(file):
-    name = re.search(r"\\([\w ]*)\.shp", file).group(1)  # type: ignore
+    name = re.search(r"\\([\w ]*)\_labeled.csv", file).group(1)  # type: ignore
     logging.info(
         f"{name} Start...",
     )
 
-    gdf = gpd.read_file(file)
+    gdf = read_csv_to_wkt(file)
     gdf["bID"] = range(1, len(gdf) + 1)  # Create a new bID to account of topology correction
 
     if gdf.crs != crs:
@@ -46,15 +47,20 @@ def create_tess(file):
 
     tess = tessellation.tessellation
     bID_list = tess.bID.to_list()
-    gdf = gdf[~gdf.bID.isin(bID_list)]
 
-    gdf.to_csv(file.replace(".shp", "_clean.csv"))  # update the bID
+    bID_before = gdf.shape[0]
+    gdf = gdf[~gdf.bID.isin(bID_list)]
+    bID_after = gdf.shape[0]
+
+    logging.info(f"{name} : bID before : {bID_before}, bID after : {bID_after}")
+
+    gdf.to_csv(file.replace("_labeled.csv", "_final.csv"))  # update the bID
     tess.to_csv(os.path.join(folder_out, f"{name}_tessel.csv"))
 
     logging.info("Succeed: %s", name)
 
 
-files = glob.glob(os.path.join(folder_in, "*.shp"))
+files = glob.glob(os.path.join(folder_in, "*.csv"))
 
 for file in files:
     try:

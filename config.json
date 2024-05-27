@@ -17,11 +17,11 @@
       "output": "Dataset\\2_building_clean\\test"
     },
     "tess_training_paths": {
-      "input": "Dataset\\2_building_clean\\training_clean",
+      "input": "Dataset\\3_labeled_building\\training",
       "output": "Dataset\\3_tess\\training"
     },
     "tess_test_paths": {
-      "input": "Dataset\\2_building_clean\\test_clean",
+      "input": "Dataset\\3_labeled_building\\test",
       "output": "Dataset\\3_tess\\test"
     },
     "building_error_training_paths": {

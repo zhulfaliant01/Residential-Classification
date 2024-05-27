@@ -15,11 +15,12 @@ Problems: Some of the 'kelurahan' have the same name as the 'kecamatan', so we n
 
 ### 2. Process the Dataset
 In this step, there will be a multiple of process we need to do.
-#### a. Quality Control
-At
+#### a. Data Preprocessing
+At this step, I preprocess multiple data such as building, streets, also landuse data using multiple script for each dataset. I also add utils folder for any misc processing
 #### b. Create Morphometric Elements
+Before we can calculate the morphometric elements, we need to create a tessellation cell for every buildings
 
-#### c. Create Morphometric Characters
+#### Still On Progress --------------------------------
 
 ## Dependencies
 - OSMnx
@@ -27,4 +28,3 @@ At
 - XGBoost
 - Geopandas
 - Pandas
-- Dask-Geopandas

@@ -96,6 +96,9 @@ for file in files:
     xmin, ymin, xmax, ymax = building.total_bounds
     label = landuse_gdf.cx[xmin:xmax, ymin:ymax]
 
+    building.geometry = building.geometry.buffer(0)
+    building = building[building.geometry.is_valid]
+
     building = add_new_id(building, kec)
     building_done = add_label(building, label)
 
@@ -103,7 +106,7 @@ for file in files:
     bID_2 = building_done.bID.nunique()
     logging.info(f"bID before : {bID_1}, bID after : {bID_2}")
 
-    building_done.to_csv(os.path.join(folder_out, f"{kec}_labeled.csv"))
+    building_done.to_csv(os.path.join(folder_out, f"{kec}_labeled.csv"), index=False)  # type: ignore
 
 
 # for kec in kecamatan:

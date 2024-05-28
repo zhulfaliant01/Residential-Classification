@@ -30,7 +30,6 @@ def create_tess(file):
     )
 
     gdf = read_csv_to_wkt(file)
-    gdf["bID"] = range(1, len(gdf) + 1)  # Create a new bID to account of topology correction
 
     if gdf.crs != crs:
         gdf = gdf.set_crs(crs, allow_override=True)
@@ -39,23 +38,25 @@ def create_tess(file):
 
     logging.info("Starting tessellation : %s", name)
     try:
-        tessellation = mm.Tessellation(gdf, "bID", limit=limit, verbose=True, use_dask=True)
+        tessellation = mm.Tessellation(
+            gdf, "bID_kec", limit=limit, verbose=True, use_dask=True
+        )
         logging.info("Finish tessellation : %s", name)
     except Exception as e:
         logging.error("Failed in tessellation : %s - %s", name, e)
         raise
 
     tess = tessellation.tessellation
-    bID_list = tess.bID.to_list()
+    bID_list = tess.bID_kec.to_list()
 
     bID_before = gdf.shape[0]
-    gdf = gdf[~gdf.bID.isin(bID_list)]
+    gdf = gdf[gdf.bID_kec.isin(bID_list)]
     bID_after = gdf.shape[0]
 
     logging.info(f"{name} : bID before : {bID_before}, bID after : {bID_after}")
 
-    gdf.to_csv(file.replace("_labeled.csv", "_final.csv"))  # update the bID
-    tess.to_csv(os.path.join(folder_out, f"{name}_tessel.csv"))
+    gdf.to_csv(file.replace("_labeled.csv", "_final.csv"), index=False)  # update the bID
+    tess.to_csv(os.path.join(folder_out, f"{name}_tessel.csv"), index=False)
 
     logging.info("Succeed: %s", name)
 

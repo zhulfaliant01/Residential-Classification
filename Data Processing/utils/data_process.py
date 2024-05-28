@@ -5,14 +5,15 @@ from shapely import wkt
 import fiona
 import json
 
-with open(r"config.json", "r") as config_file:
-    config = json.load(config_file)
-crs = config.get("crs")
 
-
-def read_csv_to_wkt(file, geom_column="geometry"):
+def read_csv_to_wkt(file, geom_column="geometry", index_col=None):
     print("Reading CSV file...")
-    data = pd.read_csv(file, index_col=0)
+
+    if not index_col:
+        data = pd.read_csv(file)
+    else:
+        data = pd.read_csv(file, index_col=index_col)
+
     print(f"Data loaded: {data.shape[0]} rows and {data.shape[1]} columns")
 
     print("Applying WKT loads...")
@@ -31,7 +32,7 @@ def list_gdb_layers(gdb_file):
     return layers
 
 
-def check_and_set_crs(gdf: gpd.GeoDataFrame):
+def check_and_set_crs(gdf: gpd.GeoDataFrame, crs):
     if gdf.crs != crs:
         gdf.set_crs(crs, allow_override=True)
     return gdf

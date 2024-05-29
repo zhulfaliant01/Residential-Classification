@@ -40,11 +40,13 @@
     },
     "label_training_paths": {
       "input": "Dataset\\2_building_clean\\training_clean",
-      "output": "Dataset\\3_labeled_building\\training"
+      "output": "Dataset\\3_labeled_building\\training",
+      "landuse": "Dataset\\2_landuse_clean\\training"
     },
     "label_test_paths": {
       "input": "Dataset\\2_building_clean\\test_clean",
-      "output": "Dataset\\3_labeled_building\\test"
+      "output": "Dataset\\3_labeled_building\\test",
+      "landuse": "Dataset\\2_landuse_clean\\test"
     },
     "morphometric_training_paths": {
       "input_building": "Dataset\\3_labeled_building\\training",

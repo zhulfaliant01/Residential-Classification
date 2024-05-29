@@ -4,8 +4,9 @@ import glob
 import os
 import json
 
+
 # Training or Test datasets?
-type = "training"
+type = "test"
 
 # Load configuration
 with open(r"config.json", "r") as config_file:
@@ -20,14 +21,15 @@ crs = config.get("crs")
 
 
 def map_label(gdf):
+    gdf["id"] = range(1, len(gdf) + 1)
     for _, row in gdf.iterrows():
         if row["D_SUB_PENG"] == "HUNIAN" and row["D_KEGIATAN"] not in [
             "RUMAH SUSUN",
             "RUMAH SUSUN UMUM",
         ]:
-            gdf.loc[_, "label"] = 1
+            gdf.loc[gdf.id == row.id, "label"] = 1
         else:
-            gdf.loc[_, "label"] = 0
+            gdf.loc[gdf.id == row.id, "label"] = 0
     gdf = gdf.dissolve("label", as_index=False)
     return gdf[["label", "geometry"]]
 
@@ -46,11 +48,13 @@ def create_gdf(files):
 # Change to WKT format later (CSV)
 files = glob.glob(os.path.join(folder_in, "*.shp"))
 gdf = create_gdf(files)
+
 gdf.reset_index(inplace=True)
+gdf.to_csv("test_training.csv", index=False)
 gdf = map_label(gdf)
 
 if gdf.crs != crs:
     gdf = gdf.set_crs(crs, allow_override=True)  # type: ignore
 
 path_file = os.path.join(folder_out, f"{type}_landuse.csv")
-gdf.to_csv("test.csv")
+gdf.to_csv(path_file, index=False)

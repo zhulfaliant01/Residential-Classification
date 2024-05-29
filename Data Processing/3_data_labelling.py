@@ -22,7 +22,7 @@ with open(r"config.json", "r") as config_file:
 # Set input and output folders from the configuration
 folder_in = config.get(f"label_{dataset_type}_paths")["input"]
 folder_out = config.get(f"label_{dataset_type}_paths")["output"]
-landuse = config.get(f"landuse_{dataset_type}_paths")["input"]
+landuse = config.get(f"label_{dataset_type}_paths")["landuse"]
 os.makedirs(folder_out, exist_ok=True)
 
 crs = config.get("crs")
@@ -54,13 +54,16 @@ def add_new_id(gdf, kec):
     return gdf
 
 
-def add_label(gdf, label):
+def add_label(gdf, label, name):
     logging.info("Add label start!")
 
     intersections = gdf.overlay(label, how="intersection")
+    logging.info(f"{name}: Intersections done...")
 
     df = intersections[["bID", "label", "geometry"]]
     df = df.dissolve(["bID", "label"])
+    logging.info(f"{name}: Dissolve done...")
+
     df.reset_index(inplace=True)
     df["inter_area"] = df.geometry.area
 
@@ -79,7 +82,7 @@ def add_label(gdf, label):
 
 
 files = glob.glob(os.path.join(folder_in, "*.shp"))
-landuse_gdf = read_csv_to_wkt(glob.glob(os.path.join(landuse, "*.csv"))[0])
+landuse_gdf = read_csv_to_wkt(glob.glob(os.path.join(landuse, "*.csv"))[0], index_col=None)
 landuse_gdf = landuse_gdf.explode(index_parts=True)
 
 if landuse_gdf.crs != crs:
@@ -100,7 +103,7 @@ for file in files:
     building = building[building.geometry.is_valid]
 
     building = add_new_id(building, kec)
-    building_done = add_label(building, label)
+    building_done = add_label(building, label, kec)
 
     bID_1 = building.bID.nunique()
     bID_2 = building_done.bID.nunique()

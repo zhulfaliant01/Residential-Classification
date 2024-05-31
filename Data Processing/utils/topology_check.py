@@ -62,18 +62,20 @@ def check_overlap(gdf, id_col=None, threshold: float = 0):
                             ]
                         )
 
-        if data_overlaps is not None:
+        if data_overlaps:
             overlaps_gdf = gpd.GeoDataFrame(
                 data_overlaps,
                 columns=[f"{id_col}_1", f"{id_col}_2", "geometry", "area"],
                 crs=gdf.crs,
             )  # type:ignore
+            del gdf["temp_index"]
+            overlaps_gdf = overlaps_gdf.dissolve(
+                by=[f"{id_col}_1", f"{id_col}_2"], as_index=False
+            )
+            overlaps_gdf.drop_duplicates(inplace=True, ignore_index=True)
+            return overlaps_gdf
         else:
             return None
-
-        del gdf["temp_index"]
-        overlaps_gdf.drop_duplicates(inplace=True, ignore_index=True)
-        return overlaps_gdf
 
     except Exception as e:
         logging.error("Failed in check_overlap: %s", e)
@@ -192,6 +194,9 @@ def check_containment(gdf, id_col, min_area: float = 0):
             return None
 
         del gdf["temp_index"]
+        containment_gdf = containment_gdf.dissolve(
+            by=[f"{id_col}_1", f"{id_col}_2"], as_index=False
+        )
         containment_gdf.drop_duplicates(
             subset=[f"{id_col}_1", f"{id_col}_2", "area"], inplace=True, ignore_index=True
         )

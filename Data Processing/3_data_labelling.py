@@ -13,7 +13,7 @@ from utils import read_csv_to_wkt
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Set dataset type: "training" or "test"
-dataset_type = "test"
+dataset_type = "training"
 
 # Load configuration from JSON file
 with open(r"config.json", "r") as config_file:
@@ -67,9 +67,10 @@ def add_label(gdf, label, name):
     df.reset_index(inplace=True)
     df["inter_area"] = df.geometry.area
 
-    result = df.groupby("bID").apply(
+    result = df.groupby("bID", group_keys=False).apply(
         lambda x: x.loc[x["inter_area"].idxmax()], include_groups=True
     )
+
     result = result.drop(columns="bID").reset_index()
 
     final_gdf = gdf.merge(
@@ -81,7 +82,9 @@ def add_label(gdf, label, name):
     return final_gdf
 
 
-files = glob.glob(os.path.join(folder_in, "*.shp"))
+files = glob.glob(
+    os.path.join(folder_in, "*.csv")
+)  # *_clean.csv for training, and *.shp for test
 landuse_gdf = read_csv_to_wkt(glob.glob(os.path.join(landuse, "*.csv"))[0], index_col=None)
 landuse_gdf = landuse_gdf.explode(index_parts=True)
 
@@ -89,9 +92,9 @@ if landuse_gdf.crs != crs:
     landuse_gdf = landuse_gdf.set_crs(crs, allow_override=True)  # type: ignore
 
 for file in files:
-    kec = re.search(r"\\([\w ]*).shp", file).group(1)  # type: ignore
+    kec = re.search(r"\\([\w ]*)_clean.csv", file).group(1)  # type: ignore
     logging.info(f"{kec} start...")
-    building = gpd.read_file(file)
+    building = read_csv_to_wkt(file)
 
     if building.crs != crs:
         building = building.set_crs(crs, allow_override=True)  # type: ignore

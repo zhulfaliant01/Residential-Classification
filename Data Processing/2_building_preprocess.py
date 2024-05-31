@@ -5,6 +5,7 @@ import json
 import utils
 import re
 import logging
+from utils import read_csv_to_wkt
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -38,25 +39,31 @@ def read_gdf(file):
         gdf (GeoDataFrame): The processed GeoDataFrame.
         kec_name (str): Extracted name of the region from the file name.
     """
-    kec_name = re.search(r"_([\w ]*)\.geojson", file).group(1)  # type: ignore
+    kec_name = re.search(r"\\([\w ]*).csv", file).group(1)  # type: ignore
     logging.info(f"{kec_name} start...")
-    gdf = gpd.read_file(file)
+    gdf = read_csv_to_wkt(file)
+
+    try:
+        gdf = gdf.set_crs(crs)
+    except:
+        pass
 
     if gdf.crs != crs:
-        gdf = gdf.to_crs(crs)
-        logging.info(f"{kec_name} : CRS = {gdf.crs}...")
-        print(gdf.geometry[0])
+        gdf = gdf.to_crs(crs)  # type: ignore
+        logging.info(f"{kec_name} : CRS = {gdf.crs}...")  # type: ignore
+        print(gdf.geometry[0])  # type: ignore
 
-    gdf["bID"] = range(1, len(gdf) + 1)
+    gdf["bID"] = range(1, len(gdf) + 1)  # type: ignore
 
     output_file = os.path.join(folder_out, f"{kec_name}.csv")
-    gdf.to_csv(output_file)
+    gdf.to_csv(output_file)  # type: ignore
 
     return gdf, kec_name
 
 
 # Process all GeoJSON files in the input folder
-files = glob.glob(os.path.join(folder_in, "*.geojson"))
+files = glob.glob(os.path.join(folder_in, "*.csv"))
+
 for file in files:
     gdf, kec = read_gdf(file)
 

@@ -68,8 +68,10 @@ def mm_std_character(gdf, sw, value: str, unique_id: str):
             neighbors = [index]
             neighbors += sw.neighbors[index]
 
-            values_list = gdf.loc[neighbors]
+            values_list = data.loc[neighbors]
             std.append(np.std(values_list))
+        else:
+            std.append(np.nan)
 
     std = pd.Series(std, index=gdf.index)
     return std
@@ -83,8 +85,10 @@ def mm_total_area(gdf, sw, unique_id):
         if index in sw.neighbors:
             neighbors = [index]
             neighbors += sw.neighbors[index]
-            values_list = gdf.loc[neighbors]
+            values_list = data.loc[neighbors]
             total_area.append(np.sum(values_list))
+        else:
+            total_area.append(np.nan)
     total_area = pd.Series(total_area, index=gdf.index)
     return total_area
 

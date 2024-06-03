@@ -1,4 +1,6 @@
-# utils/data_process.py
+#!/usr/bin/env python
+
+# dimension.py
 import pandas as pd
 import geopandas as gpd
 from shapely import wkt
@@ -6,6 +8,18 @@ import fiona
 import json
 import gc
 import numpy as np
+
+__all__ = [
+    "read_csv_to_wkt",
+    "del_gc",
+    "mm_std_character",
+    "mm_total_area",
+    "street_centrality_value",
+    "check_and_set_crs",
+    "find_street_fr_building",
+    "mm_street_character",
+    "mm_count_intersections",
+]
 
 
 def read_csv_to_wkt(file, geom_column="geometry", index_col=None):
@@ -96,6 +110,139 @@ def mm_total_area(gdf, sw, unique_id):
 def list_gdb_layers(gdb_file):
     layers = fiona.listlayers(gdb_file)
     return layers
+
+
+def street_centrality_value(street, nodes, value):
+    edges = street[["sID", "node_start", "node_end"]].copy()
+    node = nodes[["nodeID", value]].copy()
+
+    node = node.set_index("nodeID")[value]
+    values = []
+    for _, edge in edges.iterrows():
+        edge_node = [edge.node_start, edge.node_end]
+        node_list = node.loc[edge_node]
+
+        avg_value = np.mean(node_list)
+        values.append(avg_value)
+
+    values = pd.Series(values, index=street.index)
+    return values
+
+
+def find_street_fr_building(building, street, dist, building_id, street_id, debug=False):
+    building = building[[building_id, "geometry"]].copy()
+    street_data = street[[street_id, "geometry"]].copy()
+
+    # Convert building geometries to centroids
+    building["centroid"] = building.centroid
+    building = building.set_index(building_id)
+    street_data = street_data.set_index(street_id)
+
+    # Buffer around building centroids
+    buffer = building["centroid"].buffer(dist)
+    sindex = street_data.sindex
+
+    print("Start indexing")
+
+    final_result = []
+    for index in building.index:
+        hits = sindex.query(buffer[index], predicate="intersects")
+        print(f"Index {index}, hits: {hits}") if debug == True else None
+
+        if len(hits) == 0:
+            match = []
+            final_result.append(match)
+            continue
+
+        if index == "PJR1353" and dist == 50:
+            match = []
+            final_result.append(match)
+            continue
+
+        if hits.ndim == 2:
+            hits = hits.flatten()
+
+        # if index == "PJR32908" and dist == 50:
+        #     hits = hits[1]
+
+        hits = np.unique(hits)
+
+        match = street_data.iloc[hits].index.to_list()
+        final_result.append(match)
+
+    final_result = pd.Series(final_result, index=building.index)
+    return final_result
+
+
+def mm_street_character(gdf, street, value, sw, bID, sID, mode: list):
+    data = gdf.copy()
+    street = street.copy()
+    data = data.set_index(bID)
+    street = street.set_index(sID)[value]
+    mean = []
+    max = []
+    total = []
+    std = []
+    for index in data.index:
+        if index in sw:
+            street_neigh = sw[index]
+            values_list = street.loc[street_neigh]
+            if "mean" in mode:
+                mean.append(np.mean(values_list))
+            if "max" in mode:
+                max.append(np.max(values_list))
+            if "total" in mode:
+                total.append(np.sum(values_list))
+            if "std" in mode:
+                std.append(np.std(values_list))
+        else:
+            if "mean" in mode:
+                mean.append(np.nan)
+            if "max" in mode:
+                max.append(np.nan)
+            if "total" in mode:
+                total.append(np.nan)
+            if "std" in mode:
+                std.append(np.nan)
+
+    results = tuple()
+
+    if "mean" in mode:
+        mean = pd.Series(mean, index=gdf.index)
+    if "max" in mode:
+        max = pd.Series(max, index=gdf.index)
+    if "total" in mode:
+        total = pd.Series(total, index=gdf.index)
+    if "std" in mode:
+        std = pd.Series(std, index=gdf.index)
+
+    if "mean" in mode and "max" in mode:
+        return mean, max
+
+    elif "mean" in mode and "total" in mode and "std" in mode:
+        return mean, total, std
+
+    elif "mean" in mode and "std" in mode:
+        return mean, std
+
+
+def mm_count_intersections(gdf, intersection, dist, unique_id):
+    building = gdf.copy()
+    building = building.set_index(unique_id)
+    building.geometry = building.centroid
+
+    buffer = building.geometry.buffer(dist)
+
+    sindex = intersection.sindex
+
+    counts = []
+    for index in building.index:
+        hits = sindex.query(buffer.loc[index], predicate="intersects")
+        count = len(hits)
+        counts.append(count)
+
+    counts = pd.Series(counts, index=gdf.index)
+    return counts
 
 
 def check_and_set_crs(gdf: gpd.GeoDataFrame, crs):

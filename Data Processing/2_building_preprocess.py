@@ -53,6 +53,8 @@ def read_gdf(file):
         logging.info(f"{kec_name} : CRS = {gdf.crs}...")  # type: ignore
         print(gdf.geometry[0])  # type: ignore
 
+    gdf = gdf.explode(index_parts=False)
+
     gdf["bID"] = range(1, len(gdf) + 1)  # type: ignore
 
     output_file = os.path.join(folder_out, f"{kec_name}.csv")

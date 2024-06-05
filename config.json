@@ -49,7 +49,7 @@
       "landuse": "Dataset\\2_landuse_clean\\test"
     },
     "morphometric_training_paths": {
-      "input_building": "Dataset\\2_building_clean\\test_clean",
+      "input_building": "Dataset\\2_building_clean\\training_clean",
       "input_street": "Dataset\\2_street_clean\\training",
       "input_tessel": "Dataset\\4_tess\\training",
       "output": "Dataset\\5_calculated\\training_elements"
@@ -67,6 +67,10 @@
     "merging_test_paths": {
       "input": "Dataset\\5_calculated\\test_elements",
       "output": "Dataset\\6_merged\\test"
+    },
+    "create_training_cv":{
+      "input": "Dataset\\5_calculated\\training_elements",
+      "output": "Dataset\\6_merged\\training_cv"
     }
 }
   

@@ -19,6 +19,7 @@ __all__ = [
     "find_street_fr_building",
     "mm_street_character",
     "mm_count_intersections",
+    "check_correct_multipart",
 ]
 
 
@@ -142,7 +143,7 @@ def find_street_fr_building(building, street, dist, building_id, street_id, debu
     buffer = building["centroid"].buffer(dist)
     sindex = street_data.sindex
 
-    print("Start indexing")
+    print("Start indexing...")
 
     final_result = []
     for index in building.index:
@@ -162,31 +163,72 @@ def find_street_fr_building(building, street, dist, building_id, street_id, debu
         if hits.ndim == 2:
             hits = hits.flatten()
 
-        # if index == "PJR32908" and dist == 50:
-        #     hits = hits[1]
-
         hits = np.unique(hits)
-
-        match = street_data.iloc[hits].index.to_list()
+        try:
+            match = street_data.iloc[hits].index.to_list()
+        except:
+            match = []
+            final_result.append(match)
+            continue
         final_result.append(match)
 
+    print("Create series...")
     final_result = pd.Series(final_result, index=building.index)
     return final_result
 
 
-def mm_street_character(gdf, street, value, sw, bID, sID, mode: list):
+def check_correct_multipart(gdf, ids, geom_type):
+    n_gdf = gdf.copy()
+    if geom_type in n_gdf.geom_type.tolist():
+        n_gdf = n_gdf.explode(index_parts=False)
+        n_gdf = n_gdf.drop_duplicates(ids)
+    return n_gdf
+
+
+def mm_street_character(gdf, street, value, sw, bID, sID, mode: list, dist, debug=False):
     data = gdf.copy()
     street = street.copy()
     data = data.set_index(bID)
     street = street.set_index(sID)[value]
+
     mean = []
     max = []
     total = []
     std = []
+
+    print("Start indexing...")
     for index in data.index:
         if index in sw:
             street_neigh = sw[index]
-            values_list = street.loc[street_neigh]
+            try:
+                if isinstance(street_neigh, list):
+                    values_list = street.loc[street_neigh].values
+                else:
+                    values_list = [street.loc[street_neigh]]
+            except:
+                if "mean" in mode:
+                    mean.append(np.nan)
+                if "max" in mode:
+                    max.append(np.nan)
+                if "total" in mode:
+                    total.append(np.nan)
+                if "std" in mode:
+                    std.append(np.nan)
+                continue
+
+            print(f"Index: {index}; Values: {values_list}") if debug == True else None
+
+            if len(values_list) == 0 or (index == "CIL360" and dist == 50):
+                if "mean" in mode:
+                    mean.append(np.nan)
+                if "max" in mode:
+                    max.append(np.nan)
+                if "total" in mode:
+                    total.append(np.nan)
+                if "std" in mode:
+                    std.append(np.nan)
+                continue
+
             if "mean" in mode:
                 mean.append(np.mean(values_list))
             if "max" in mode:
@@ -204,8 +246,6 @@ def mm_street_character(gdf, street, value, sw, bID, sID, mode: list):
                 total.append(np.nan)
             if "std" in mode:
                 std.append(np.nan)
-
-    results = tuple()
 
     if "mean" in mode:
         mean = pd.Series(mean, index=gdf.index)

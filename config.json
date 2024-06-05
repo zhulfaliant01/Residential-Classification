@@ -68,9 +68,13 @@
       "input": "Dataset\\5_calculated\\test_elements",
       "output": "Dataset\\6_merged\\test"
     },
-    "create_training_cv":{
+    "create_training_cv_5":{
       "input": "Dataset\\5_calculated\\training_elements",
-      "output": "Dataset\\6_merged\\training_cv"
+      "output": "Dataset\\6_merged\\5_fold\\training_cv"
+    },
+    "create_training_cv_10":{
+      "input": "Dataset\\5_calculated\\training_elements",
+      "output": "Dataset\\6_merged\\10_fold\\training_cv"
     }
 }
   

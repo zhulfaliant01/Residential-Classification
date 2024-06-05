@@ -1,4 +1,3 @@
-from operator import index
 import os
 import geopandas as gpd
 import pandas as pd
@@ -8,7 +7,7 @@ import logging
 import libpysal
 import json
 import re
-import gc
+
 from utils import (
     read_csv_to_wkt,
     check_and_set_crs,
@@ -387,11 +386,8 @@ def ft_distance_street(building, street, nodes, dist):
 
 
 building_files = glob.glob(os.path.join(building_in, "*_final.csv"))[6:7]
-street_files = glob.glob(os.path.join(street_in, "*_drive_2.csv"))[6:7]
+street_files = glob.glob(os.path.join(street_in, "*_drive.csv"))[6:7]
 tessel_files = glob.glob(os.path.join(tessel_in, "*_tessel.csv"))
-
-print(street_files)
-print(tessel_files)
 
 # # Temporary 4 Juni Only
 # building_files.remove("Dataset\\2_building_clean\\training_clean\\Kebayoran Baru_final.csv")
@@ -399,7 +395,7 @@ print(tessel_files)
 # tessel_files.remove("Dataset\\4_tess\\training\\Kebayoran Baru_tessel.csv")
 
 for building, street, tessel in zip(building_files, street_files, tessel_files):
-    print("t")
+
     name = re.search(r"\\([\w ]*)_final.csv", building).group(1)  # type: ignore
     try:
         logging.info(f"{name} start...")

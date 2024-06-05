@@ -25,9 +25,7 @@ for file in files:
     name = re.search(r"\\([\w ])*_building.csv", file).group(1)  # type: ignore
     logging.info(f"{name} start...")
     df = read_csv_to_wkt(file)
-    df = df.drop(
-        columns=["geometry", "highway_y", "node_start", "node_end", "mm_len", "nodeID", "sID"]
-    )
+    df = df.drop(columns=["highway_y", "node_start", "node_end", "mm_len", "nodeID", "sID"])
 
     if "highway_x" in df.columns:
         df = df.rename(columns={"highway_x": "highway"})

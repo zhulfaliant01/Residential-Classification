@@ -23,13 +23,37 @@ os.makedirs(folder_out, exist_ok=True)
 crs = config.get("crs")
 
 
-def create_tess(file):
-    name = re.search(r"\\([\w ]*)\_labeled.csv", file).group(1)  # type: ignore
+def add_new_id(file, kec):
+    logging.info("Add id start!")
+    gdf = read_csv_to_wkt(file)
+    code_map = {
+        "Cilandak": "CIL",
+        "Jagakarsa": "JAG",
+        "Kebayoran Baru": "KEB",
+        "Kebayoran Lama": "KEL",
+        "Mampang Prapatan": "MAP",
+        "Pancoran": "PAN",
+        "Pasar Minggu": "PAS",
+        "Pesanggrahan": "PES",
+        "Setiabudi": "SET",
+        "Tebet": "TEB",
+        "Kelapa Gading": "KGD",
+        "Cilincing": "CLN",
+        "Koja": "KOJ",
+        "Pademangan": "PDM",
+        "Penjaringan": "PJR",
+        "Tanjung Priok": "TJP",
+    }
+    kec_code = code_map[kec]
+    gdf["bID_kec"] = kec_code + gdf["bID"].astype(str)
+
+    return gdf
+
+
+def create_tess(gdf, name):  # type: ignore
     logging.info(
         f"{name} Start...",
     )
-
-    gdf = read_csv_to_wkt(file)
 
     if gdf.crs != crs:
         gdf = gdf.set_crs(crs, allow_override=True)
@@ -55,16 +79,19 @@ def create_tess(file):
 
     logging.info(f"{name} : bID before : {bID_before}, bID after : {bID_after}")
 
-    gdf.to_csv(file.replace("_labeled.csv", "_final.csv"), index=False)  # update the bID
+    gdf.to_csv(file.replace("_clean.csv", "_final.csv"), index=False)  # update the bID
     tess.to_csv(os.path.join(folder_out, f"{name}_tessel.csv"), index=False)
 
     logging.info("Succeed: %s", name)
 
 
-files = glob.glob(os.path.join(folder_in, "*.csv"))
+files = glob.glob(os.path.join(folder_in, "*_clean.csv"))[6:7]
+print(files)
 
 for file in files:
     try:
-        create_tess(file)
+        name = re.search(r"\\([\w ]*)\_clean.csv", file).group(1)  # type: ignore
+        gdf = add_new_id(file, name)
+        create_tess(gdf, name)
     except Exception as e:
         continue

@@ -26,7 +26,7 @@ import traceback
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-dataset_type = "training"  # Sebelum hitung training, data jalannya perlu dipecah dulu
+dataset_type = "test"  # Sebelum hitung training, data jalannya perlu dipecah dulu
 
 # Load configuration from JSON file
 with open(r"config.json", "r") as config_file:
@@ -57,6 +57,7 @@ def ft_building_tess_geom(building, tessel):
     ccd = mm.CentroidCorners(building_gdf, verbose=False)
     building_gdf["b_ccd_means"] = ccd.mean
     building_gdf["b_ccd_std"] = ccd.std
+    del_gc(ccd)
     building_gdf["b_corners"] = mm.Corners(building_gdf, verbose=False).series
     building_gdf["b_elong"] = mm.Elongation(building_gdf).series
     building_gdf["b_lal"] = mm.LongestAxisLength(building_gdf).series
@@ -139,6 +140,7 @@ def ft_building_tess_dist(building, tessel, dist):
         "b_lal",
         "b_eri",
     ]
+
     logging.info(f"{name}: Calculate building ({dist}m)...")  # ~ 10 menit
     new_gdf = gpd.GeoDataFrame(index=building_gdf.index)  # type: ignore
     # Loop through each building characteristic
@@ -385,9 +387,9 @@ def ft_distance_street(building, street, nodes, dist):
     return building_gdf
 
 
-building_files = glob.glob(os.path.join(building_in, "*_final.csv"))[6:7]
-street_files = glob.glob(os.path.join(street_in, "*_drive.csv"))[6:7]
-tessel_files = glob.glob(os.path.join(tessel_in, "*_tessel.csv"))
+building_files = glob.glob(os.path.join(building_in, "Tanjung Priok_final.csv"))
+street_files = glob.glob(os.path.join(street_in, "Tanjung Priok_drive.csv"))
+tessel_files = glob.glob(os.path.join(tessel_in, "Tanjung Priok_tessel.csv"))
 
 # # Temporary 4 Juni Only
 # building_files.remove("Dataset\\2_building_clean\\training_clean\\Kebayoran Baru_final.csv")
@@ -412,7 +414,7 @@ for building, street, tessel in zip(building_files, street_files, tessel_files):
         street_gdf = check_correct_multipart(street_gdf, "sID", "MultiLinestring")
 
         building_gdf = gpd.sjoin_nearest(
-            building_gdf, street_gdf[["sID", "geometry"]], "left", 150, distance_col="b_closest_street"  # type: ignore
+            building_gdf, street_gdf[["sID", "geometry", "highway"]], "left", 150, distance_col="b_closest_street"  # type: ignore
         )
 
         tessel_gdf = tessel_gdf.reset_index()
@@ -468,10 +470,10 @@ for building, street, tessel in zip(building_files, street_files, tessel_files):
         del_gc(tessel_gdf)
 
         try:
-            street_gdf.to_csv(os.path.join(folder_out, f"2_{name}_street_2.csv"), index=False)  # type: ignore
+            street_gdf.to_csv(os.path.join(folder_out, f"2_{name}_street.csv"), index=False)  # type: ignore
         except Exception as e:
             logging.warning(f"{name}: Error - {e}")
-            street_gdf.to_csv(os.path.join(emergency_folder, f"2_{name}_street_2.csv"), index=False)  # type: ignore
+            street_gdf.to_csv(os.path.join(emergency_folder, f"2_{name}_street.csv"), index=False)  # type: ignore
         del_gc(street_gdf)
 
         try:

@@ -10,10 +10,12 @@ from utils import read_csv_to_wkt
 # del os.environ["PROJ_LIB"]  # Ada conflict antara PROJ dari venv dengan PROJ dari PostgreSQL
 
 # Set logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # Set dataset type: "training" or "test"
-dataset_type = "training"
+dataset_type = "test"
 
 # Load configuration from JSON file
 with open(r"config.json", "r") as config_file:
@@ -28,53 +30,29 @@ os.makedirs(folder_out, exist_ok=True)
 crs = config.get("crs")
 
 
-def add_new_id(gdf, kec):
-    logging.info("Add id start!")
-    code_map = {
-        "Cilandak": "CIL",
-        "Jagakarsa": "JAG",
-        "Kebayoran Baru": "KEB",
-        "Kebayoran Lama": "KEL",
-        "Mampang Prapatan": "MAP",
-        "Pancoran": "PAN",
-        "Pasar Minggu": "PAS",
-        "Pesanggrahan": "PES",
-        "Setiabudi": "SET",
-        "Tebet": "TEB",
-        "Kelapa Gading": "KGD",
-        "Cilincing": "CLN",
-        "Koja": "KOJ",
-        "Pademangan": "PDM",
-        "Penjaringan": "PJR",
-        "Tanjung Priok": "TJP",
-    }
-    kec_code = code_map[kec]
-    gdf["bID_kec"] = kec_code + gdf["bID"].astype(str)
-
-    return gdf
-
-
 def add_label(gdf, label, name):
     logging.info("Add label start!")
 
     intersections = gdf.overlay(label, how="intersection")
     logging.info(f"{name}: Intersections done...")
 
-    df = intersections[["bID", "label", "geometry"]]
-    df = df.dissolve(["bID", "label"])
+    df = intersections[["bID_kec", "label", "geometry"]]
+    df = df.dissolve(["bID_kec", "label"])
     logging.info(f"{name}: Dissolve done...")
 
     df.reset_index(inplace=True)
     df["inter_area"] = df.geometry.area
 
-    result = df.groupby("bID", group_keys=False).apply(
+    result = df.groupby("bID_kec", group_keys=False).apply(
         lambda x: x.loc[x["inter_area"].idxmax()], include_groups=True
     )
 
-    result = result.drop(columns="bID").reset_index()
+    result = result.drop(columns="bID_kec").reset_index()
 
     final_gdf = gdf.merge(
-        result.drop(columns=["inter_area", "geometry"]), left_on="bID", right_on="bID"
+        result.drop(columns=["inter_area", "geometry"]),
+        left_on="bID_kec",
+        right_on="bID_kec",
     )
 
     final_gdf = gpd.GeoDataFrame(final_gdf)
@@ -82,17 +60,15 @@ def add_label(gdf, label, name):
     return final_gdf
 
 
-files = glob.glob(
-    os.path.join(folder_in, "*.csv")
-)  # *_clean.csv for training, and *.shp for test
-landuse_gdf = read_csv_to_wkt(glob.glob(os.path.join(landuse, "*.csv"))[0], index_col=None)
+files = glob.glob(os.path.join(folder_in, "2_*_building.csv"))
+landuse_gdf = gpd.read_file(r"Dataset\2_landuse_clean\test\test_landuse_2.shp")
 landuse_gdf = landuse_gdf.explode(index_parts=True)
 
 if landuse_gdf.crs != crs:
     landuse_gdf = landuse_gdf.set_crs(crs, allow_override=True)  # type: ignore
 
 for file in files:
-    kec = re.search(r"\\([\w ]*)_clean.csv", file).group(1)  # type: ignore
+    kec = re.search(r"\\2_([\w ]*)_building.csv", file).group(1)  # type: ignore #typeig
     logging.info(f"{kec} start...")
     building = read_csv_to_wkt(file)
 
@@ -105,12 +81,15 @@ for file in files:
     building.geometry = building.geometry.buffer(0)
     building = building[building.geometry.is_valid]
 
-    building = add_new_id(building, kec)
+    try:
+        building.drop(columns="label", inplace=True, axis=1)
+    except:
+        pass
     building_done = add_label(building, label, kec)
 
-    bID_1 = building.bID.nunique()
-    bID_2 = building_done.bID.nunique()
-    logging.info(f"bID before : {bID_1}, bID after : {bID_2}")
+    bID_kec_1 = building.bID_kec.nunique()
+    bID_kec_2 = building_done.bID_kec.nunique()
+    logging.info(f"bID_kec before : {bID_kec_1}, bID_kec after : {bID_kec_2}")
 
     building_done.to_csv(os.path.join(folder_out, f"{kec}_labeled.csv"), index=False)  # type: ignore
 

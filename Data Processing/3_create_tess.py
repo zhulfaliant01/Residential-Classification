@@ -85,8 +85,7 @@ def create_tess(gdf, name):  # type: ignore
     logging.info("Succeed: %s", name)
 
 
-files = glob.glob(os.path.join(folder_in, "*_clean.csv"))[6:7]
-print(files)
+files = glob.glob(os.path.join(folder_in, "*_clean.csv"))
 
 for file in files:
     try:

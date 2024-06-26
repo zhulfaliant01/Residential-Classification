@@ -74,7 +74,7 @@ def del_gc(var):
     gc.collect()
 
 
-def mm_std_character(gdf, sw, value: str, unique_id: str):
+def mm_std_character(gdf: gpd.GeoDataFrame, sw, value: str, unique_id: str):
     data = gdf.copy()
     data = data.set_index(unique_id)[value]
     std = []
@@ -93,6 +93,22 @@ def mm_std_character(gdf, sw, value: str, unique_id: str):
 
 
 def mm_total_area(gdf, sw, unique_id):
+    """
+    Calculates the total area of neighboring buildings for each building in a GeoDataFrame.
+
+    Parameters:
+    - gdf (gpd.GeoDataFrame): A GeoDataFrame containing building geometries and attributes.
+    - sw (SpatialWeights object): A SpatialWeights object representing the spatial relationships between buildings.
+    - unique_id (str): The name of the column in the GeoDataFrame that uniquely identifies each building.
+
+    Returns:
+    - total_area (pd.Series): A Series containing the total area of neighboring buildings for each building.
+
+    Example:
+    ```
+    total_area = mm_total_area(gdf, sw, "building_id")
+    ```
+    """
     data = gdf.copy()
     data = data.set_index(unique_id)["b_area"]
     total_area = []

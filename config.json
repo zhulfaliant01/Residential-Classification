@@ -60,21 +60,36 @@
       "input_tessel": "Dataset\\4_tess\\test",
       "output": "Dataset\\5_calculated\\test_elements"
     },
-    "merging_training_paths": {
-      "input": "Dataset\\5_calculated\\training_elements",
-      "output": "Dataset\\6_merged\\training"
+    "preprocess_training_paths": {
+      "input": "Dataset\\5_calculated\\training_labeled",
+      "output": "Dataset\\5_calculated\\training_final",
+      "output_merged": "Dataset\\6_merged\\training"
     },
-    "merging_test_paths": {
-      "input": "Dataset\\5_calculated\\test_elements",
-      "output": "Dataset\\6_merged\\test"
+    "preprocess_test_paths": {
+      "input": "Dataset\\5_calculated\\test_labeled",
+      "output": "Dataset\\5_calculated\\test_final",
+      "output_merged": "Dataset\\6_merged\\test"
     },
     "create_training_cv_5":{
-      "input": "Dataset\\5_calculated\\training_elements",
-      "output": "Dataset\\6_merged\\5_fold\\training_cv"
+      "input": "Dataset\\5_calculated\\training_final",
+      "output": "Dataset\\6_merged\\training_cv\\5_fold"
     },
     "create_training_cv_10":{
-      "input": "Dataset\\5_calculated\\training_elements",
-      "output": "Dataset\\6_merged\\10_fold\\training_cv"
+      "input": "Dataset\\5_calculated\\training_final",
+      "output": "Dataset\\6_merged\\training_cv\\10_fold"
+    },
+
+    "initial_model": {
+      "input_5cv": "Dataset\\6_merged\\training_cv\\5_fold",
+      "output": "Data Modelling\\initial_model",
+      "report" : "Data Modelling"
+    },
+    "testing_model": {
+      "input_training":"Dataset\\5_calculated\\training_final",
+      "input_testing":"Dataset\\5_calculated\\test_final",
+      "report":"Data Modelling\\testing_report",
+      "results" : "Data Modelling\\testing_results"
     }
+
 }
   

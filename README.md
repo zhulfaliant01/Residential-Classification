@@ -18,9 +18,25 @@ In this step, there will be a multiple of process we need to do.
 #### a. Data Preprocessing
 At this step, I preprocess multiple data such as building, streets, also landuse data using multiple script for each dataset. I also add utils folder for any misc processing
 #### b. Create Morphometric Elements
-Before we can calculate the morphometric elements, we need to create a tessellation cell for every buildings
+Before we can calculate the morphometric elements, we need to create a tessellation cell for every buildings.
+#### c. Calculate The Building Morphometric Values
+We calculate the morphometric values using Momepy library. Here we calculate all values that represent the building and its surrounding buildings.
 
-#### Still On Progress --------------------------------
+### 3. Create the Classification Models
+
+#### a. Create Initial Model
+At this step, we use XGBoost algorithm for the classification of the building use. At first we use initial value for every hyperparameter.
+#### b. Hyperparameters Tuning
+Then, we try to optimize the hyperparameters with a spatial cross validation to make sure that the model can handle unseen data from another region.
+#### c. Model Testing
+After we get the ideal hyperparameters, we try to test the model using Jakarta Utara's buildings. 
+
+Ati this step, we conduct a several experiments.
+
+1. With no local data
+2. With 2,5% local data
+3. With 5% local data
+4. With 10% local data
 
 ## Dependencies
 - OSMnx

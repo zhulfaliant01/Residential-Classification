@@ -5,13 +5,13 @@ import os
 import glob
 import re
 
-datal = "leak"
+datal = "noleak"
 
 folder = r"Data Modelling\testing_results"
 files = (
     glob.glob(os.path.join(folder, "*_noleak_9.csv"))
     if datal == "noleak"
-    else glob.glob(os.path.join(folder, "*Exp_81.csv"))
+    else glob.glob(os.path.join(folder, "*Exp_91.csv"))
 )
 # Read CSV file
 
@@ -48,29 +48,29 @@ for file in files:
     df["prob_loss"] = abs(df["pred_proba"] - df["label"])
     df["prob_loss"] = df["prob_loss"].apply(lambda x: x if x >= 0.518 else 0)
     # Plot dengan warna khusus
+    df.to_csv(file, index=False)
+    # # Create a color map for plotting
+    # df["color"] = df["conf_matrix"].map(colors)  # type: ignore
 
-    # Create a color map for plotting
-    df["color"] = df["conf_matrix"].map(colors)  # type: ignore
+    # # Plot with colors
+    # fig, ax = plt.subplots(1, 1, figsize=(25, 25))
+    # df.plot(ax=ax, color=df["color"])
 
-    # Plot with colors
-    fig, ax = plt.subplots(1, 1, figsize=(25, 25))
-    df.plot(ax=ax, color=df["color"])
+    # # Custom legend
+    # import matplotlib.patches as mpatches
 
-    # Custom legend
-    import matplotlib.patches as mpatches
+    # legend_handles = [
+    #     mpatches.Patch(color=color, label=label)
+    #     for label, color in colors.items()
+    # ]
+    # ax.legend(handles=legend_handles, loc="best")
+    # ax.set_axis_off()
 
-    legend_handles = [
-        mpatches.Patch(color=color, label=label)
-        for label, color in colors.items()
-    ]
-    ax.legend(handles=legend_handles, loc="best")
-    ax.set_axis_off()
-
-    # Save the plot
-    folder_save = (
-        r"C:\Users\Lenovo\OneDrive - UGM 365\Documents\Second Brain\1 Projects\Skripsi\Dokumen\Hasil\No Local Data"
-        if datal == "noleak"
-        else r"C:\Users\Lenovo\OneDrive - UGM 365\Documents\Second Brain\1 Projects\Skripsi\Dokumen\Hasil\10% Local Data"
-    )
+    # # Save the plot
+    # folder_save = (
+    #     r"C:\Users\Lenovo\OneDrive - UGM 365\Documents\Second Brain\1 Projects\Skripsi\Dokumen\Hasil\No Local Data"
+    #     if datal == "noleak"
+    #     else r"C:\Users\Lenovo\OneDrive - UGM 365\Documents\Second Brain\1 Projects\Skripsi\Dokumen\Hasil\10% Local Data"
+    # )
     print("saving...")
-    plt.savefig(os.path.join(folder_save, f"{name}.png"))
+    # plt.savefig(os.path.join(folder_save, f"{name}.png"))

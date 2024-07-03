@@ -24,16 +24,22 @@ import traceback
 
 # del os.environ["PROJ_LIB"]  # Ada conflict antara PROJ dari venv dengan PROJ dari PostgreSQL
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
-dataset_type = "test"  # Sebelum hitung training, data jalannya perlu dipecah dulu
+dataset_type = (
+    "test"  # Sebelum hitung training, data jalannya perlu dipecah dulu
+)
 
 # Load configuration from JSON file
 with open(r"config.json", "r") as config_file:
     config = json.load(config_file)
 
 # Set input and output folders from the configuration
-building_in = config.get(f"morphometric_{dataset_type}_paths")["input_building"]
+building_in = config.get(f"morphometric_{dataset_type}_paths")[
+    "input_building"
+]
 street_in = config.get(f"morphometric_{dataset_type}_paths")["input_street"]
 tessel_in = config.get(f"morphometric_{dataset_type}_paths")["input_tessel"]
 folder_out = config.get(f"morphometric_{dataset_type}_paths")["output"]
@@ -53,7 +59,9 @@ def ft_building_tess_geom(building, tessel):
     building_gdf["b_area"] = building_gdf.area
     building_gdf["b_perimeter"] = mm.Perimeter(building_gdf).series
     building_gdf["b_convexity"] = mm.Convexity(building_gdf).series
-    building_gdf["b_circular_comp"] = mm.CircularCompactness(building_gdf).series
+    building_gdf["b_circular_comp"] = mm.CircularCompactness(
+        building_gdf
+    ).series
     ccd = mm.CentroidCorners(building_gdf, verbose=False)
     building_gdf["b_ccd_means"] = ccd.mean
     building_gdf["b_ccd_std"] = ccd.std
@@ -64,7 +72,9 @@ def ft_building_tess_geom(building, tessel):
     building_gdf["b_eri"] = mm.EquivalentRectangularIndex(
         building_gdf, "b_area", "b_perimeter"
     ).series
-    building_gdf["b_orientation"] = mm.Orientation(building_gdf, verbose=False).series
+    building_gdf["b_orientation"] = mm.Orientation(
+        building_gdf, verbose=False
+    ).series
     # ----------------------------------------------------------------
     logging.info(f"{name}: Tessellation...")
     tessel_gdf["t_area"] = tessel_gdf.area
@@ -76,7 +86,9 @@ def ft_building_tess_geom(building, tessel):
     tessel_gdf["t_eri"] = mm.EquivalentRectangularIndex(
         tessel_gdf, "t_area", "t_perimeter"
     ).series
-    tessel_gdf["t_orientation"] = mm.Orientation(tessel_gdf, verbose=False).series
+    tessel_gdf["t_orientation"] = mm.Orientation(
+        tessel_gdf, verbose=False
+    ).series
     # ----------------------------------------------------------------
     building_gdf["b_area_ratio"] = mm.AreaRatio(
         tessel_gdf, building_gdf, "t_area", "b_area", "bID_kec"
@@ -102,18 +114,27 @@ def ft_building_tess_neigh(building, tessel):
         building_gdf, sw1, "bID_kec", "b_orientation", False
     ).series
     tessel_gdf["t_alignment"] = mm.CellAlignment(
-        building_gdf, tessel_gdf, "b_orientation", "t_orientation", "bID_kec", "bID_kec"
+        building_gdf,
+        tessel_gdf,
+        "b_orientation",
+        "t_orientation",
+        "bID_kec",
+        "bID_kec",
     ).series
 
     logging.info(f"{name}: SW3...")
-    sw3 = libpysal.weights.higher_order(sw1, k=3, lower_order=True, silence_warnings=True)
+    sw3 = libpysal.weights.higher_order(
+        sw1, k=3, lower_order=True, silence_warnings=True
+    )
 
     del_gc(sw1)
 
     building_gdf["b_adjacency"] = mm.BuildingAdjacency(
         building_gdf, sw3, "bID_kec", verbose=False
     ).series
-    tessel_gdf["t_cov_area"] = mm.CoveredArea(tessel_gdf, sw3, "bID_kec", False).series
+    tessel_gdf["t_cov_area"] = mm.CoveredArea(
+        tessel_gdf, sw3, "bID_kec", False
+    ).series
 
     del_gc(sw3)
 
@@ -126,7 +147,9 @@ def ft_building_tess_dist(building, tessel, dist):
     tessel_gdf = tessel
 
     logging.info(f"{name}: Create sw ({dist}m)...")
-    sw_dist = libpysal.weights.DistanceBand.from_dataframe(building_gdf, dist, ids="bID_kec")
+    sw_dist = libpysal.weights.DistanceBand.from_dataframe(
+        building_gdf, dist, ids="bID_kec"
+    )
     building_gdf[f"b_neighbor_{dist}"] = mm.Neighbors(
         building_gdf, sw_dist, "bID_kec", verbose=False
     ).series
@@ -145,7 +168,9 @@ def ft_building_tess_dist(building, tessel, dist):
     new_gdf = gpd.GeoDataFrame(index=building_gdf.index)  # type: ignore
     # Loop through each building characteristic
     for value in b_values:
-        character = mm.AverageCharacter(building_gdf, value, sw_dist, "bID_kec", verbose=False)
+        character = mm.AverageCharacter(
+            building_gdf, value, sw_dist, "bID_kec", verbose=False
+        )
         new_gdf[f"b_avg_{value[2:]}_{dist}"] = character.mean
         new_gdf[f"b_median_{value[2:]}_{dist}"] = character.median
         new_gdf[f"b_std_{value[2:]}_{dist}"] = mm_std_character(
@@ -169,7 +194,9 @@ def ft_building_tess_dist(building, tessel, dist):
     logging.info(f"{name}: Calculate tessellation ({dist}m)...")
     new_gdf = gpd.GeoDataFrame(index=tessel_gdf.index)
     for value in t_values:
-        character = mm.AverageCharacter(tessel_gdf, value, sw_dist, "bID_kec", verbose=False)
+        character = mm.AverageCharacter(
+            tessel_gdf, value, sw_dist, "bID_kec", verbose=False
+        )
         new_gdf[f"t_avg_{value[2:]}_{dist}"] = character.mean
         new_gdf[f"t_median_{value[2:]}_{dist}"] = character.median
         new_gdf[f"t_std_{value[2:]}_{dist}"] = mm_std_character(
@@ -179,7 +206,9 @@ def ft_building_tess_dist(building, tessel, dist):
 
     del_gc(new_gdf)
 
-    building_gdf[f"b_total_area_{dist}"] = mm_total_area(building_gdf, sw_dist, "bID_kec")
+    building_gdf[f"b_total_area_{dist}"] = mm_total_area(
+        building_gdf, sw_dist, "bID_kec"
+    )
 
     del_gc(sw_dist)
 
@@ -195,7 +224,9 @@ def ft_closest_street(building, street):
     street_gdf["s_width"] = profile.w
     street_gdf["s_width_def"] = profile.wd
     street_gdf["s_openness"] = profile.o
-    street_gdf["s_sum_length"] = mm.SegmentsLength(street_gdf, verbose=False).sum
+    street_gdf["s_sum_length"] = mm.SegmentsLength(
+        street_gdf, verbose=False
+    ).sum
     street_gdf["s_alignment"] = mm.StreetAlignment(
         building_gdf, street_gdf, "b_orientation", network_id="sID"
     ).series
@@ -206,7 +237,9 @@ def ft_closest_street(building, street):
     graph = mm.gdf_to_nx(street_gdf, length="s_length")
     graph = mm.node_degree(graph, "n_degree")
 
-    logging.info(f"{name}: Betweenness Centrality (500m)...")  # ~ 5 menit per centrality
+    logging.info(
+        f"{name}: Betweenness Centrality (500m)..."
+    )  # ~ 5 menit per centrality
     graph = mm.betweenness_centrality(
         graph,
         name="n_betweenness_500",
@@ -308,7 +341,9 @@ def ft_distance_street(building, street, nodes, dist):
     nodes_gdf = nodes
 
     # Can i use distance band on street?
-    street_sw = find_street_fr_building(building_gdf, street_gdf, dist, "bID_kec", "sID")
+    street_sw = find_street_fr_building(
+        building_gdf, street_gdf, dist, "bID_kec", "sID"
+    )
     print(street_sw)
     values = [
         "s_betweenness_500",
@@ -360,7 +395,7 @@ def ft_distance_street(building, street, nodes, dist):
         )
     )
 
-    building_gdf[f"s_mean_length_street_{dist}"], building_gdf[f"s_mean_total_street_{dist}"], building_gdf[f"s_std_total_street_{dist}"] = (  # type: ignore
+    building_gdf[f"s_mean_length_street_{dist}"], building_gdf[f"s_total_length_street_{dist}"], building_gdf[f"s_std_length_street_{dist}"] = (  # type: ignore
         mm_street_character(
             building_gdf,
             street_gdf,
@@ -387,7 +422,9 @@ def ft_distance_street(building, street, nodes, dist):
     return building_gdf
 
 
-building_files = glob.glob(os.path.join(building_in, "Tanjung Priok_final.csv"))
+building_files = glob.glob(
+    os.path.join(building_in, "Tanjung Priok_final.csv")
+)
 street_files = glob.glob(os.path.join(street_in, "Tanjung Priok_drive.csv"))
 tessel_files = glob.glob(os.path.join(tessel_in, "Tanjung Priok_tessel.csv"))
 
@@ -396,29 +433,41 @@ tessel_files = glob.glob(os.path.join(tessel_in, "Tanjung Priok_tessel.csv"))
 # street_files.remove("Dataset\\2_street_clean\\training\\Kebayoran Baru_drive_2.csv")
 # tessel_files.remove("Dataset\\4_tess\\training\\Kebayoran Baru_tessel.csv")
 
-for building, street, tessel in zip(building_files, street_files, tessel_files):
+for building, street, tessel in zip(
+    building_files, street_files, tessel_files
+):
 
     name = re.search(r"\\([\w ]*)_final.csv", building).group(1)  # type: ignore
     try:
         logging.info(f"{name} start...")
 
         building_gdf = check_and_set_crs(read_csv_to_wkt(building), crs)
-        street_gdf = check_and_set_crs(read_csv_to_wkt(street, index_col=0), crs)
+        street_gdf = check_and_set_crs(
+            read_csv_to_wkt(street, index_col=0), crs
+        )
         tessel_gdf = check_and_set_crs(read_csv_to_wkt(tessel), crs)
 
         building_gdf = building_gdf[["bID_kec", "building", "geometry"]]
 
         # Temporary Solution for multipolygon and multilinestring
-        building_gdf = check_correct_multipart(building_gdf, "bID_kec", "MultiPolygon")
-        tessel_gdf = check_correct_multipart(tessel_gdf, "bID_kec", "MultiPolygon")
-        street_gdf = check_correct_multipart(street_gdf, "sID", "MultiLinestring")
+        building_gdf = check_correct_multipart(
+            building_gdf, "bID_kec", "MultiPolygon"
+        )
+        tessel_gdf = check_correct_multipart(
+            tessel_gdf, "bID_kec", "MultiPolygon"
+        )
+        street_gdf = check_correct_multipart(
+            street_gdf, "sID", "MultiLinestring"
+        )
 
         building_gdf = gpd.sjoin_nearest(
             building_gdf, street_gdf[["sID", "geometry", "highway"]], "left", 150, distance_col="b_closest_street"  # type: ignore
         )
 
         tessel_gdf = tessel_gdf.reset_index()
-        building_gdf = building_gdf.drop_duplicates("bID_kec").drop(columns="index_right")
+        building_gdf = building_gdf.drop_duplicates("bID_kec").drop(
+            columns="index_right"
+        )
         street_gdf = street_gdf[["sID", "geometry"]]
 
         logging.info(f"{name}: Calculate features!")
@@ -435,11 +484,21 @@ for building, street, tessel in zip(building_files, street_files, tessel_files):
         building_gdf, tessel_gdf = ft_building_tess_dist(
             building_gdf, tessel_gdf, 150
         )  # ~ 25 menit
-        building_gdf, tessel_gdf = ft_building_tess_dist(building_gdf, tessel_gdf, 300)
-        building_gdf, nodes_gdf, street_gdf = ft_closest_street(building_gdf, street_gdf)
-        building_gdf = ft_distance_street(building_gdf, street_gdf, nodes_gdf, 50)
-        building_gdf = ft_distance_street(building_gdf, street_gdf, nodes_gdf, 150)
-        building_gdf = ft_distance_street(building_gdf, street_gdf, nodes_gdf, 300)
+        building_gdf, tessel_gdf = ft_building_tess_dist(
+            building_gdf, tessel_gdf, 300
+        )
+        building_gdf, nodes_gdf, street_gdf = ft_closest_street(
+            building_gdf, street_gdf
+        )
+        building_gdf = ft_distance_street(
+            building_gdf, street_gdf, nodes_gdf, 50
+        )
+        building_gdf = ft_distance_street(
+            building_gdf, street_gdf, nodes_gdf, 150
+        )
+        building_gdf = ft_distance_street(
+            building_gdf, street_gdf, nodes_gdf, 300
+        )
 
         logging.info(f"{name}: Merging data to building...")
         building_gdf = building_gdf.merge(  # type: ignore
@@ -456,16 +515,20 @@ for building, street, tessel in zip(building_files, street_files, tessel_files):
         except Exception as e:
             logging.warning(f"{name}: Error - {e}")
             building_gdf.to_csv(
-                os.path.join(emergency_folder, f"2_{name}_building.csv"), index=False
+                os.path.join(emergency_folder, f"2_{name}_building.csv"),
+                index=False,
             )
         del_gc(building_gdf)
 
         try:
-            tessel_gdf.to_csv(os.path.join(folder_out, f"2_{name}_tessel.csv"), index=False)
+            tessel_gdf.to_csv(
+                os.path.join(folder_out, f"2_{name}_tessel.csv"), index=False
+            )
         except Exception as e:
             logging.warning(f"{name}: Error - {e}")
             tessel_gdf.to_csv(
-                os.path.join(emergency_folder, f"2_{name}_tessel.csv"), index=False
+                os.path.join(emergency_folder, f"2_{name}_tessel.csv"),
+                index=False,
             )
         del_gc(tessel_gdf)
 
